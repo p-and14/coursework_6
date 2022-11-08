@@ -15,10 +15,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -33,8 +34,6 @@ ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
-
-# TODO здесь тоже нужно подключить Swagger и corsheaders
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -43,9 +42,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework_simplejwt",
+    "djoser",
+    "django_filters",
     "users",
     "ads",
     "redoc",
+    "drf_spectacular",
+    "corsheaders",
 ]
 
 
@@ -80,18 +84,51 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "skymarket.wsgi.application"
 
-# TODO здесь мы настраиваем аутентификацию и пагинацию
+PAGE_SIZE = 4
+
 REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ]
 }
-# TODO здесь мы настраиваем Djoser
+
+ROTATE_REFRESH_TOKENS = True
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Skymarket API",
+    "DESCRIPTION": "Coursework 6 skymarket project",
+    "VERSION": "1.0.0."
+}
 DJOSER = {
+    "SERIALIZERS": {
+        "user_create": "users.serializers.UserRegistrationSerializer",
+        "current_user": "users.serializers.CurrentUserSerializer",
+    },
+    "EMAIL": {
+        "password_reset": "users.email.PasswordResetEmail",
+    },
+    "LOGIN_FIELD": "email",
+    "PASSWORD_RESET_CONFIRM_URL": "reset_password/{uid}/{token}",
+    "PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND": True,
+}
+
+SIMPLE_JWT = {
+    "ROTATE_REFRESH_TOKENS": True,
 }
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# TODO здесь необходимо настроить подключение к БД
 DATABASES = {
+    'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv("DB_NAME"),
+            'USER': os.getenv("DB_USER"),
+            'PASSWORD': os.getenv("DB_PASSWORD"),
+            'HOST': os.getenv("DB_HOST"),
+            'PORT': os.getenv("DB_PORT"),
+    }
 }
 
 
@@ -145,11 +182,33 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # Include Email Backend
-# TODO эти переменные мы добавили чтобы помочь Вам настроить почтовый ящик на django.
-# TODO теперь Вам необходимо создать файл .env на основе .env.example
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_USE_TLS = True
-EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.yandex.ru")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
+
+AUTH_USER_MODEL = "users.user"
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#             'level': 'DEBUG'
+#         },
+#     },
+#     'loggers': {
+#         '': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#             'propagate': False,
+#         },
+#         'django.db': {
+#             'level': 'DEBUG'
+#         }
+#     },
+# }
